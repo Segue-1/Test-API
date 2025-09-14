@@ -1,0 +1,12 @@
+list
+curl http://localhost:8081/instances
+
+get
+curl http://localhost:8081/instances/<instance_id>
+
+create
+curl http://localhost:8081/create -X POST
+
+delete
+curl http://localhost:8081/instances/<instance_id> -X DELETE
+

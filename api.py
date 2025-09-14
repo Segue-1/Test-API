@@ -21,6 +21,7 @@ class GenericResource:
         print("Processing results (ignore if 0): " + str(self.processing_results))
 
     def modify(self, title_input, description_input):
+        # Logically could be updated
         if self.title != title_input and self.description != description_input:
             self.title = title_input
             self.description = description_input
@@ -74,11 +75,12 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
             except json.JSONDecodeError:
                 self.send_error(400, "Invalid JSON")
             except Exception as e:
-                self.send_error(500, f"Internal Server Error" + str(e))
+                self.send_error(500, f"Internal Server Error: " + str(e))
         else:
             self.send_error(404, "Path not found")
 
     def do_GET(self):
+        # List
         if self.path == '/instances':
             self.send_response(200)
             self.send_header('Content-type', 'application/json')
@@ -97,6 +99,7 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                 }
                 self.wfile.write(json.dumps(response).encode('utf-8'))
 
+        # Get
         elif self.path.startswith('/instances/'):
             parsed_id = self.path[len('/instances/'):]
 
@@ -114,9 +117,33 @@ class HTTPRequestHandler(BaseHTTPRequestHandler):
                     self.send_error(404, f"Instance with ID {parsed_id} not found")
             except ValueError:
                 self.send_error(400, "Invalid instance ID format")
+            except Exception as e:
+                self.send_error(500, f"Internal Server Error: " + str(e))
             
         else:
             self.send_error(404, "Path not found")
+
+    def do_DELETE(self):
+        if self.path.startswith('/instances/'):
+            parsed_id = self.path[len('/instances/'):]
+
+            try:
+                if parsed_id in instances:
+                    del instances[parsed_id]
+
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+
+                    response = {
+                        "message": "Instance " + parsed_id + " has been deleted!"
+                    }
+                    self.wfile.write(json.dumps(response).encode('utf-8'))
+                else:
+                    self.send_error(404, f"Instance with ID {parsed_id} not found")
+            except Exception as e:
+                self.send_error(500, f"Internal Server Error: " + str(e))
+
 
 
 instances = {}
