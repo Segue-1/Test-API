@@ -1,3 +1,9 @@
+health
+curl http://localhost:8081/health
+
+reset (clears sessions, instances, counters and maintenance mode)
+curl http://localhost:8081/reset -X POST
+
 list
 curl http://localhost:8081/instances
 
@@ -7,6 +13,32 @@ curl http://localhost:8081/instances/<instance_id>
 create
 curl http://localhost:8081/create -X POST
 
+update (409 with X-Expected-Version when X-Version is wrong)
+curl -i http://localhost:8081/instances/<instance_id> -X PUT -H "X-Version: 0" -H "Content-Type: application/json" -d '{"title":"New Title"}'
+
 delete
 curl http://localhost:8081/instances/<instance_id> -X DELETE
 
+login (session cookie good for N uses, default 2)
+curl -i "http://localhost:8081/login?uses=1" -X POST
+
+profile (401 when the cookie is used up or missing, 503 in maintenance mode)
+curl -i http://localhost:8081/secure/profile -H "Cookie: session=<token>"
+
+maintenance (toggles maintenance mode on/off)
+curl http://localhost:8081/maintenance -X POST
+
+rate limited (429 for the first N calls, default 2)
+curl -i "http://localhost:8081/ratelimited?limit=2"
+
+flaky (500 on the first call, then 200)
+curl -i http://localhost:8081/flaky
+
+form token
+curl http://localhost:8081/form
+
+form submit (403 unless X-CSRF-Token matches the latest form token)
+curl -i http://localhost:8081/form -X POST -H "X-CSRF-Token: <csrf_token>"
+
+echo (returns the exact request received)
+curl http://localhost:8081/echo -X POST -d 'hello'
